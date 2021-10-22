@@ -133,7 +133,7 @@ class DataStorage:
         else:
             return {"status_code": response.status_code, "message": response.reason}
 
-    def delete(self, collection_name, document_id):
+    async def delete(self, collection_name, document_id):
         body = dict(
             plugin_id=self.plugin_id,
             organization_id=self.organization_id,

@@ -1,10 +1,7 @@
-from typing import Optional
-from fastapi import FastAPI, status, Response
+from fastapi import FastAPI
 from utils.db_handler import *
-from fastapi import FastAPI, status, HTTPException
 from core.config import settings
 from starlette.middleware.cors import CORSMiddleware
-from fastapi import APIRouter
 from endpoints import rooms, members, messages, threads
 
 app = FastAPI(
