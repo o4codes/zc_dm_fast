@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, AnyUrl
+from pydantic.fields import Field
 from .threadSchema import Thread
 from datetime import datetime, timezone
 
@@ -13,6 +14,7 @@ class Emoji(BaseModel):
     created_at : str = str(datetime.now())
 
 class Message(BaseModel):
+    id: str = Field(..., alias='_id')
     sender_id : str
     room_id : str = None
     message : str
@@ -25,3 +27,9 @@ class Message(BaseModel):
     reactions : List[Emoji] = []
     sent_from_thread : bool = False
     created_at : str = str(datetime.now())
+
+class MessageError(BaseModel):
+    message: str
+
+class ReadStatus(BaseModel):
+    read: bool
