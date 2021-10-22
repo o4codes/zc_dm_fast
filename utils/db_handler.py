@@ -199,7 +199,7 @@ DB = DataStorage()
 
 
 # get rooms for a particular user
-def get_rooms(user_id, org_id):
+async def get_rooms(user_id, org_id):
     """Get the rooms a user is in
 
     Args:
@@ -213,7 +213,7 @@ def get_rooms(user_id, org_id):
     helper.organization_id = org_id
     query = {"room_user_ids": user_id}
     options = {"sort": {"created_at": -1}}
-    response = helper.read_query("dm_rooms", query=query, options=options)
+    response = await helper.read_query("dm_rooms", query=query, options=options)
 
     if response and "status_code" not in response:
         return response
@@ -221,11 +221,11 @@ def get_rooms(user_id, org_id):
 
 
 # get all the messages in a particular room
-def get_room_messages(room_id, org_id):
+async def get_room_messages(room_id, org_id):
     helper = DataStorage()
     helper.organization_id = org_id
     options = {"sort": {"created_at": -1}}
-    response = helper.read_query(
+    response = await helper.read_query(
         "dm_messages", query={"room_id": room_id}, options=options
     )
     if response and "status_code" not in response:
@@ -234,7 +234,7 @@ def get_room_messages(room_id, org_id):
 
 
 # get all the messages in a particular room filtered by date
-def get_messages(room_id, org_id, date):
+async def get_messages(room_id, org_id, date):
     helper = DataStorage()
     helper.organization_id = org_id
     req_date = datetime.strptime(date, "%d-%m-%Y")
@@ -247,7 +247,7 @@ def get_messages(room_id, org_id, date):
         ]
     }
 
-    response = helper.read_query("dm_messages", query=query, options=options)
+    response = await helper.read_query("dm_messages", query=query, options=options)
     if response and "status_code" not in response:
         return response
     return []
