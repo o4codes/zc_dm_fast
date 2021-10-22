@@ -171,3 +171,57 @@ async def mark_read_unread(org_id: str, room_id: str, message_id: str):
         content={"detail": "Message not found"}, 
         status_code=status.HTTP_404_NOT_FOUND
         )
+
+
+@router.put("/org/{org_id}/rooms/{room_id}/messages/{message_id}/update", 
+            status_code=200, response_model=MessageUpdateOut, 
+            responses={404: {"model": MessageError}, 
+            424: {"model": MessageError}, 403: {"model": MessageError}})
+async def edit_message(org_id: str, room_id: str, message_id: str, new_message: MessageUpdateIn):
+    helper = DataStorage()
+    helper.organization_id = org_id
+    message = await helper.read("dm_messages", {"_id": message_id, "room_id": room_id})
+    if message:
+        if message.get("status_code", None) != None:
+            if "status_code" == 404:
+                return JSONResponse(
+                    content={"detail": "No data on zc core"}, 
+                    status_code=status.HTTP_404_NOT_FOUND
+                )
+            return JSONResponse(
+                content={"detail":"Problem with zc core"}, 
+                status_code=status.HTTP_424_FAILED_DEPENDENCY
+            )
+        if message["sender_id"] == new_message.sender_id:
+            message["message"] = new_message.message
+            data = {"message": message["message"]}
+            response = await helper.update("dm_messages", message_id, data=data)
+            if response and response.get("status") == 200:
+                output_response = {
+                        "status": response["message"],
+                        "sender_id": new_message.sender_id,
+                        "message_id": message_id,
+                        "room_id": room_id,
+                        "message": new_message.message,
+                        "event": Events.MESSAGE_UPDATE,
+                    }
+                centrifugo_data = centrifugo_client.publish(room=room_id, data=output_response)
+                if centrifugo_data and centrifugo_data.get("status_code") == 200:
+                    return output_response
+                return JSONResponse(
+                    content={"detail": "Centrifugo server is not available"},
+                    status_code=status.HTTP_424_FAILED_DEPENDENCY,
+                )
+            return JSONResponse(
+                content={"detail": "Message status not updated"},
+                status_code=status.HTTP_424_FAILED_DEPENDENCY,
+            )
+        return JSONResponse(
+                content={"detail": "Sender_id invalid"},
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
+    return JSONResponse(
+        content={"detail": "Message not found"}, 
+        status_code=status.HTTP_404_NOT_FOUND
+        )
+  

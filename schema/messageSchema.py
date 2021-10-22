@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, AnyUrl
 from pydantic.fields import Field
+from starlette import status
 from .threadSchema import Thread
 from datetime import datetime, timezone
 
@@ -14,7 +15,7 @@ class Emoji(BaseModel):
     created_at : datetime = datetime.now()
 
 class Message(BaseModel):
-    id: str = Field(..., alias='_id')
+    id: Optional[str] = Field(..., alias='_id')
     sender_id : str
     room_id : str = None
     message : str
@@ -33,3 +34,17 @@ class MessageError(BaseModel):
 
 class ReadStatus(BaseModel):
     read: bool
+
+class MessageUpdateIn(BaseModel):
+    sender_id: str
+    room_id: str
+    message_id: str
+    message: str
+
+class MessageUpdateOut(BaseModel):
+    status: str
+    sender_id: str
+    room_id: str
+    message_id: str
+    message: str
+    event: str
