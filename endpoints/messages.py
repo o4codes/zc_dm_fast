@@ -1,13 +1,15 @@
 from starlette import status
 from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from utils.db_handler import *
-from utils.centrifugo_handler import centrifugo_client
+from utils.centrifugo_handler import Events, centrifugo_client
 from fastapi import APIRouter
 from fastapi import status, Response
 from schema import messageSchema
 from typing import Optional
 from fastapi_pagination import Page, paginate, add_pagination
 from schema.messageSchema import *
+from utils.decorators import db_init_with_credentials
 
 router = APIRouter()
 
@@ -16,7 +18,7 @@ router = APIRouter()
     "/org/{org_id}/rooms/{room_id}/messages/{message_id}",
     status_code=status.HTTP_200_OK,
 )
-async def delete_message(room_id, message_id):
+async def delete_message(request: Request, room_id: str, message_id: str):
     """
     This function deletes message in rooms using message
     organization id (org_id), room id (room_id) and the message id (message_id).
@@ -30,7 +32,7 @@ async def delete_message(room_id, message_id):
             if response.get("status") == 200:
                 response_output = {
                     "status": response["message"],
-                    "event": "message_delete",
+                    "event": Events.MESSAGE_DELETE,
                     "room_id": room_id,
                     "message_id": message_id,
                 }
@@ -70,7 +72,7 @@ async def send_message(org_id: str, room_id: str, message: messageSchema.Message
 
                 response_output = {
                     "status": response["message"],
-                    "event": "message_create",
+                    "event": Events.MESSAGE_CREATE,
                     "message_id": response["data"]["object_id"],
                     "room_id": room_id,
                     "thread": False,
@@ -94,20 +96,33 @@ async def send_message(org_id: str, room_id: str, message: messageSchema.Message
                             detail="message not sent",
                         )
                 except:
-                    raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY,
-                                        detail="centrifugo server not available")
-            
-            raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY, 
-                                detail="message not saved and not sent")
-                   
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sender not in room") 
-       
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="room not found")
+                    raise HTTPException(
+                        status_code=status.HTTP_424_FAILED_DEPENDENCY,
+                        detail="centrifugo server not available",
+                    )
+
+            raise HTTPException(
+                status_code=status.HTTP_424_FAILED_DEPENDENCY,
+                detail="message not saved and not sent",
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Sender not in room"
+        )
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail="room not found"
+    )
 
 
-
-@router.get("/org/{org_id}/rooms/{room_id}/messages", status_code = 200, response_model=Page[Message])
-async def room_messages(*, org_id: str, room_id: str, date: Optional[str] = None, response: Response):
+@router.get(
+    "/org/{org_id}/rooms/{room_id}/messages",
+    status_code=200,
+    response_model=Page[Message],
+)
+async def room_messages(
+    *, org_id: str, room_id: str, date: Optional[str] = None, response: Response
+):
     if date == None:
         room_messages = get_room_messages(room_id=room_id, org_id=org_id)
         if room_messages:
@@ -120,5 +135,5 @@ async def room_messages(*, org_id: str, room_id: str, date: Optional[str] = None
     response.status_code = status.HTTP_204_NO_CONTENT
     return messages_by_date
 
-add_pagination(router)
 
+add_pagination(router)
