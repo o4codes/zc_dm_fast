@@ -48,7 +48,7 @@ class DataStorage:
             self.plugin_id = request.get("PLUGIN_ID", PLUGIN_ID)
             self.organization_id = request.get("ORG_ID")
 
-    def write(self, collection_name, data):
+    async def write(self, collection_name, data):
         body = dict(
             plugin_id=self.plugin_id,
             organization_id=self.organization_id,
@@ -65,7 +65,7 @@ class DataStorage:
         else:
             return {"status_code": response.status_code, "message": response.reason}
 
-    def update(self, collection_name, document_id, data):
+    async def update(self, collection_name, document_id, data):
         body = dict(
             plugin_id=self.plugin_id,
             organization_id=self.organization_id,
@@ -83,7 +83,7 @@ class DataStorage:
         else:
             return {"status_code": response.status_code, "message": response.reason}
 
-    def read(self, collection_name, filter={}):
+    async def read(self, collection_name, filter={}):
         try:
             query = urlencode(filter)
         except Exception as e:
@@ -107,7 +107,7 @@ class DataStorage:
         else:
             return {"status_code": response.status_code, "message": response.reason}
 
-    def read_query(
+    async def read_query(
         self,
         collection_name: str,
         resource_id: str = None,
@@ -150,7 +150,7 @@ class DataStorage:
         else:
             return {"status_code": response.status_code, "message": response.reason}
 
-    def upload(self, file, token):  # takes in files oh, 1 file
+    async def upload(self, file, token):  # takes in files oh, 1 file
         url = self.upload_multiple_api.format(pgn_id=self.plugin_id)
         files = {"file": file}
         try:
@@ -165,7 +165,7 @@ class DataStorage:
         else:
             return {"status": response.status_code, "message": response.reason}
 
-    def upload_more(self, files, token):
+    async def upload_more(self, files, token):
         url = self.upload_multiple_api.format(pgn_id=self.plugin_id)
         try:
             response = requests.post(
@@ -179,7 +179,7 @@ class DataStorage:
         else:
             return {"status": response.status_code, "message": response.reason}
 
-    def delete_file(self, file_url):
+    async def delete_file(self, file_url):
         url = self.delete_file_api.format(pgn_id=self.plugin_id)
 
         body = dict(file_url=file_url)
