@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Response, status
 from utils.db_handler import *
-import app
+from schema.roomSchema import *
+
 
 router = APIRouter()
 
-@router.get("/org/{org_id}/users/{user_id}/rooms", status_code = 200)
+@router.get("/org/{org_id}/users/{user_id}/rooms", status_code = status.HTTP_200_OK)
 async def user_rooms(user_id: str, org_id: str, response: Response):
     """Get the rooms a user is in
 
