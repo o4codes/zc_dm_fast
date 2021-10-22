@@ -11,8 +11,7 @@ from requests import exceptions
 def login_user():
     data = {"email": "sam@gmail.com", "password": "Owhondah"}
     try:
-        response = requests.post(
-            url="https://api.zuri.chat/auth/login", json=data)
+        response = requests.post(url="https://api.zuri.chat/auth/login", json=data)
     except requests.exceptions.RequestException as e:
         return e
     if response.status_code == 200:
@@ -46,8 +45,8 @@ class DataStorage:
             self.plugin_id = PLUGIN_ID
             self.organization_id = ORG_ID
         else:
-            self.plugin_id = request.META.get("PLUGIN_ID", PLUGIN_ID)
-            self.organization_id = request.META.get("ORG_ID")
+            self.plugin_id = request.get("PLUGIN_ID", PLUGIN_ID)
+            self.organization_id = request.get("ORG_ID")
 
     def write(self, collection_name, data):
         body = dict(
@@ -125,8 +124,7 @@ class DataStorage:
         }
 
         try:
-            response = requests.post(
-                url=self.read_query_api, json=request_body)
+            response = requests.post(url=self.read_query_api, json=request_body)
         except requests.exceptions.RequestException as e:
             print(e)
             return None
@@ -228,7 +226,8 @@ def get_room_messages(room_id, org_id):
     helper.organization_id = org_id
     options = {"sort": {"created_at": -1}}
     response = helper.read_query(
-        "dm_messages", query={"room_id": room_id}, options=options)
+        "dm_messages", query={"room_id": room_id}, options=options
+    )
     if response and "status_code" not in response:
         return response
     return []
@@ -238,16 +237,13 @@ def get_room_messages(room_id, org_id):
 def get_messages(room_id, org_id, date):
     helper = DataStorage()
     helper.organization_id = org_id
-    req_date = datetime.strptime(date, '%d-%m-%Y')
+    req_date = datetime.strptime(date, "%d-%m-%Y")
     next_day = req_date + timedelta(days=1)
     options = {"sort": {"created_at": -1}}
     query = {
         "$and": [
             {"room_id": room_id},
-            {"created_at": {
-                "$gte": str(req_date),
-                "$lt": str(next_day)
-            }}
+            {"created_at": {"$gte": str(req_date), "$lt": str(next_day)}},
         ]
     }
 
@@ -266,9 +262,7 @@ def get_user_profile(org_id=None, user_id=None):
 
 
 def get_all_organization_members(org_id: str):
-    response = requests.get(
-        f"https://api.zuri.chat/organizations/{org_id}/members/"
-    )
+    response = requests.get(f"https://api.zuri.chat/organizations/{org_id}/members/")
     if response.status_code == 200:
         return response.json()["data"]
     return None
@@ -292,16 +286,15 @@ def sidebar_emitter(
     if user_rooms != None:
         for room in user_rooms:
             room_profile = {}
-            if len(room['room_user_ids']) == 2:
+            if len(room["room_user_ids"]) == 2:
                 room_profile["room_id"] = room["_id"]
                 room_profile["room_url"] = f"/dm/{room['_id']}"
-                user_id_set = set(room['room_user_ids']
-                                  ).difference({member_id})
+                user_id_set = set(room["room_user_ids"]).difference({member_id})
                 partner_id = list(user_id_set)[0]
 
                 profile = get_member(members, partner_id)
 
-                if "user_name" in profile and profile['user_name'] != "":
+                if "user_name" in profile and profile["user_name"] != "":
                     if profile["user_name"]:
                         room_profile["room_name"] = profile["user_name"]
                     else:

@@ -23,7 +23,15 @@ async def read_root():
     return {"Hello": "World"}
 
 
-app.include_router(messages.router, prefix=settings.API_V1_STR, tags=["messages"]) # include urls from message.py
-app.include_router(rooms.router, prefix=settings.API_V1_STR, tags=["rooms"]) # include urls from rooms.py
-app.include_router(threads.router, prefix=settings.API_V1_STR, tags=["threads"]) # include urls from threads.py
-app.include_router(members.router, prefix=settings.API_V1_STR, tags=["members"]) # inlude urls from members.py
+app.include_router(
+    messages.router, prefix=settings.API_V1_STR, tags=["messages"]
+)  # include urls from message.py
+app.include_router(
+    rooms.router, prefix=settings.API_V1_STR, tags=["rooms"]
+)  # include urls from rooms.py
+app.include_router(
+    threads.router, prefix=settings.API_V1_STR, tags=["threads"]
+)  # include urls from threads.py
+app.include_router(
+    members.router, prefix=settings.API_V1_STR, tags=["members"]
+)  # inlude urls from members.py
