@@ -280,7 +280,7 @@ async def sidebar_emitter(
 ):  # group_room_name = None or a String of Names
     rooms = []
     starred_rooms = []
-    user_rooms = get_rooms(user_id=member_id, org_id=org_id)
+    user_rooms = await get_rooms(user_id=member_id, org_id=org_id)
     members = await get_all_organization_members(org_id)
 
     if user_rooms != None:
