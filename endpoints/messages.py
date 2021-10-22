@@ -5,8 +5,7 @@ from utils.centrifugo_handler import centrifugo_client
 from fastapi import APIRouter
 from fastapi import status, Response
 from schema import messageSchema
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import Optional
 from fastapi_pagination import Page, paginate, add_pagination
 from schema.messageSchema import *
 
