@@ -22,8 +22,13 @@ uvloop = "==0.16.0"
 watchgod = "==0.7"
 websockets = "==10.0"
 PyYAML = "==6.0"
+requests = "*"
 
 [dev-packages]
+black = "*"
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
