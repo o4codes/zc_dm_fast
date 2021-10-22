@@ -48,7 +48,7 @@ class DataStorage:
             self.plugin_id = request.get("PLUGIN_ID", PLUGIN_ID)
             self.organization_id = request.get("ORG_ID")
 
-    def write(self, collection_name, data):
+    async def write(self, collection_name, data):
         body = dict(
             plugin_id=self.plugin_id,
             organization_id=self.organization_id,
@@ -83,7 +83,7 @@ class DataStorage:
         else:
             return {"status_code": response.status_code, "message": response.reason}
 
-    def read(self, collection_name, filter={}):
+    async def read(self, collection_name, filter={}):
         try:
             query = urlencode(filter)
         except Exception as e:
@@ -98,7 +98,7 @@ class DataStorage:
         )
 
         try:
-            response = requests.get(url=url)
+            response = await requests.get(url=url)
         except requests.exceptions.RequestException as e:
             print(e)
             return None
@@ -107,7 +107,7 @@ class DataStorage:
         else:
             return {"status_code": response.status_code, "message": response.reason}
 
-    def read_query(
+    async def read_query(
         self,
         collection_name: str,
         resource_id: str = None,

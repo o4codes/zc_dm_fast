@@ -52,20 +52,19 @@ async def delete_message(room_id, message_id):
 
 
 @router.post("/org/{org_id}/rooms/{room_id}/messages", status_code=status.HTTP_201_CREATED)
-def send_message(org_id:str, room_id:str, message:messageSchema.Message):
+async def send_message(org_id:str, room_id:str, message:messageSchema.Message):
     db_handler = DataStorage()
     db_handler.organization_id = org_id
     
     message = message.dict() # convert obj to dictionary
-    message['created_at'] = str(message['created_at'])
     room_id = message["room_id"]  # room id gotten from client request
 
-    room =  db_handler.read_query("dm_rooms", query={"_id": room_id})
+    room =  await db_handler.read_query("dm_rooms", query={"_id": room_id})
     
     if room and room.get("status_code", None) == None:
         if message["sender_id"] in room.get("room_user_ids", []):
 
-            response = db_handler.write("dm_messages", message)
+            response = await db_handler.write("dm_messages", message)
             if response.get("status", None) == 200:
 
                 response_output = {

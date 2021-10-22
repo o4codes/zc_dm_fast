@@ -10,7 +10,7 @@ class Emoji(BaseModel):
     category : str
     aliases : List[str] = []
     count : int = 0
-    created_at : datetime = datetime.now()
+    created_at : str = str(datetime.now())
 
 class Message(BaseModel):
     sender_id : str
@@ -24,4 +24,4 @@ class Message(BaseModel):
     replied_message : List = []
     reactions : List[Emoji] = []
     sent_from_thread : bool = False
-    created_at : datetime = datetime.now()
+    created_at : str = str(datetime.now())
