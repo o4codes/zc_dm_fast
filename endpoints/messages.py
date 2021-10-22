@@ -1,7 +1,8 @@
 from starlette import status
 from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from utils.db_handler import *
-from utils.centrifugo_handler import centrifugo_client
+from utils.centrifugo_handler import Events, centrifugo_client
 from fastapi import APIRouter
 from fastapi import status, Response
 from schema import messageSchema
@@ -17,7 +18,7 @@ router = APIRouter()
     "/org/{org_id}/rooms/{room_id}/messages/{message_id}",
     status_code=status.HTTP_200_OK,
 )
-async def delete_message(room_id, message_id):
+async def delete_message(request: Request, room_id: str, message_id: str):
     """
     This function deletes message in rooms using message
     organization id (org_id), room id (room_id) and the message id (message_id).
@@ -31,7 +32,7 @@ async def delete_message(room_id, message_id):
             if response.get("status") == 200:
                 response_output = {
                     "status": response["message"],
-                    "event": "message_delete",
+                    "event": Events.MESSAGE_DELETE,
                     "room_id": room_id,
                     "message_id": message_id,
                 }
@@ -71,7 +72,7 @@ async def send_message(org_id: str, room_id: str, message: messageSchema.Message
 
                 response_output = {
                     "status": response["message"],
-                    "event": "message_create",
+                    "event": Events.MESSAGE_CREATE,
                     "message_id": response["data"]["object_id"],
                     "room_id": room_id,
                     "thread": False,
@@ -95,27 +96,41 @@ async def send_message(org_id: str, room_id: str, message: messageSchema.Message
                             detail="message not sent",
                         )
                 except:
-                    raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY,
-                                        detail="centrifugo server not available")
-            
-            raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY, 
-                                detail="message not saved and not sent")
-                   
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sender not in room") 
-       
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="room not found")
+                    raise HTTPException(
+                        status_code=status.HTTP_424_FAILED_DEPENDENCY,
+                        detail="centrifugo server not available",
+                    )
+
+            raise HTTPException(
+                status_code=status.HTTP_424_FAILED_DEPENDENCY,
+                detail="message not saved and not sent",
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Sender not in room"
+        )
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail="room not found"
+    )
 
 
-
-@router.get("/org/{org_id}/rooms/{room_id}/messages", status_code = 200, response_model=Page[Message], responses={404: {"model": MessageError}})
-async def room_messages(*, org_id: str, room_id: str, date: Optional[str] = None, response: Response):
+@router.get(
+    "/org/{org_id}/rooms/{room_id}/messages",
+    status_code=200,
+    response_model=Page[Message],
+    responses={404: {"model": MessageError}}
+)
+async def room_messages(
+    *, org_id: str, room_id: str, date: Optional[str] = None, response: Response
+):
     if date == None:
-        room_messages = get_room_messages(room_id=room_id, org_id=org_id)
+        room_messages = await get_room_messages(room_id=room_id, org_id=org_id)
         if room_messages:
             return paginate(room_messages)
         response.status_code = status.HTTP_404_NOT_FOUND
         return JSONResponse(status_code=response.status_code, content={"message": "No message found"})
-    messages_by_date = get_messages(room_id, org_id, date)
+    messages_by_date = await get_messages(room_id, org_id, date)
     if messages_by_date:
         return paginate(messages_by_date)
     response.status_code = status.HTTP_404_NOT_FOUND
@@ -125,14 +140,13 @@ async def room_messages(*, org_id: str, room_id: str, date: Optional[str] = None
 add_pagination(router)
 
 
-
 @router.put("/org/{org_id}/rooms/{room_id}/messages/{message_id}/read_status", 
             status_code=200, response_model=ReadStatus, 
             responses={404: {"model": MessageError}, 424: {"model": MessageError}})
 async def mark_read_unread(org_id: str, room_id: str, message_id: str):
     helper = DataStorage()
     helper.organization_id = org_id
-    message = helper.read("dm_messages", {"_id": message_id, "room_id": room_id})
+    message = await helper.read("dm_messages", {"_id": message_id, "room_id": room_id})
     if message:
         if message.get("status_code", None) != None:
             if "status_code" == 404:
@@ -146,7 +160,7 @@ async def mark_read_unread(org_id: str, room_id: str, message_id: str):
             )
         read = message["read"]
         data = {"read": not read}
-        response = DB.update("dm_messages", message_id, data=data)
+        response = await helper.update("dm_messages", message_id, data=data)
         if response and response.get("status") == 200:
             return data
         return JSONResponse(

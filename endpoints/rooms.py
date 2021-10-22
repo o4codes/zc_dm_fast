@@ -15,7 +15,7 @@ async def user_rooms(user_id: str, org_id: str, response: Response):
     Returns:
         [List]: [description]
     """
-    result = get_rooms(user_id, org_id)
+    result = await get_rooms(user_id, org_id)
 
     if result:
         return result
