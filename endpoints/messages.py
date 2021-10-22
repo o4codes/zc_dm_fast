@@ -3,8 +3,12 @@ from starlette.exceptions import HTTPException
 from utils.db_handler import *
 from utils.centrifugo_handler import centrifugo_client
 from fastapi import APIRouter
-from fastapi import status
+from fastapi import status, Response
 from schema import messageSchema
+from typing import List, Optional
+from pydantic import BaseModel
+from fastapi_pagination import Page, paginate, add_pagination
+from schema.messageSchema import *
 
 router = APIRouter()
 
@@ -95,3 +99,23 @@ async def send_message(org_id:str, room_id:str, message:messageSchema.Message):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sender not in room") 
        
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="room not found")
+
+
+
+@router.get("/org/{org_id}/rooms/{room_id}/messages", status_code = 200, response_model=Page[Message])
+async def room_messages(*, org_id: str, room_id: str, date: Optional[str] = None, response: Response):
+    if date == None:
+        room_messages = get_room_messages(room_id=room_id, org_id=org_id)
+        if room_messages:
+            return paginate(room_messages)
+        response.status_code = status.HTTP_204_NO_CONTENT
+        return room_messages
+    messages_by_date = get_messages(room_id, org_id, date)
+    if messages_by_date:
+        return paginate(messages_by_date)
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return messages_by_date
+
+add_pagination(router)
+
+
