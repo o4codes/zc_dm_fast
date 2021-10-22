@@ -1,12 +1,19 @@
 import requests
 from typing import Any, Dict, Optional
 from requests.exceptions import RequestException
+from enum import Enum
 
 
 CENTRIFUGO_HOST = "https://realtime.zuri.chat/api"
 CENTRIFUGO_API_TOKEN = "58c2400b-831d-411d-8fe8-31b6e337738b"
 
+class Events(str, Enum):
+    MESSAGE_CREATE = "message_create"
+    MESSAGE_UPDATE = "message_update"
+    MESSAGE_DELETE = "message_delete"
 
+    def __str__(self) -> str:
+        return str.__str__(self)
 class CentrifugoHandler:
     """A helper class to handle communication with the Centrifugo server."""
 
