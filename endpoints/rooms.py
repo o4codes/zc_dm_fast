@@ -24,3 +24,5 @@ async def get_rooms(user_id: str, org_id: str, response: Response):
         return response
     response.status_code = status.HTTP_204_NO_CONTENT
     return []
+from fastapi import  APIRouter
+router = APIRouter()
