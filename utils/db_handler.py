@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 
 
 from requests import exceptions
-from starlette.requests import Request
 
 
 def login_user():
@@ -30,7 +29,7 @@ header = {"Authorization": f"Bearer {login_user()}"}
 
 
 class DataStorage:
-    def __init__(self, request: Request = None):
+    def __init__(self, request=None):
         self.read_api = (
             "https://api.zuri.chat/data/read/{pgn_id}/{collec_name}/{org_id}?{query}"
         )
