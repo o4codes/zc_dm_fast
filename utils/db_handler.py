@@ -199,7 +199,7 @@ DB = DataStorage()
 
 
 # get rooms for a particular user
-def get_rooms(user_id, org_id):
+async def get_rooms(user_id, org_id):
     """Get the rooms a user is in
 
     Args:
@@ -221,7 +221,7 @@ def get_rooms(user_id, org_id):
 
 
 # get all the messages in a particular room
-def get_room_messages(room_id, org_id):
+async def get_room_messages(room_id, org_id):
     helper = DataStorage()
     helper.organization_id = org_id
     options = {"sort": {"created_at": -1}}
@@ -234,7 +234,7 @@ def get_room_messages(room_id, org_id):
 
 
 # get all the messages in a particular room filtered by date
-def get_messages(room_id, org_id, date):
+async def get_messages(room_id, org_id, date):
     helper = DataStorage()
     helper.organization_id = org_id
     req_date = datetime.strptime(date, "%d-%m-%Y")
@@ -253,7 +253,7 @@ def get_messages(room_id, org_id, date):
     return []
 
 
-def get_user_profile(org_id=None, user_id=None):
+async def get_user_profile(org_id=None, user_id=None):
     profile = requests.get(
         f"https://api.zuri.chat/organizations/{org_id}/members/{user_id}",
         headers=header,
@@ -261,27 +261,27 @@ def get_user_profile(org_id=None, user_id=None):
     return profile.json()
 
 
-def get_all_organization_members(org_id: str):
+async def get_all_organization_members(org_id: str):
     response = requests.get(f"https://api.zuri.chat/organizations/{org_id}/members/")
     if response.status_code == 200:
         return response.json()["data"]
     return None
 
 
-def get_member(members: list, member_id: str):
+async def get_member(members: list, member_id: str):
     for member in members:
         if member["_id"] == member_id:
             return member
     return {}
 
 
-def sidebar_emitter(
+async def sidebar_emitter(
     org_id, member_id, group_room_name=None
 ):  # group_room_name = None or a String of Names
     rooms = []
     starred_rooms = []
     user_rooms = get_rooms(user_id=member_id, org_id=org_id)
-    members = get_all_organization_members(org_id)
+    members = await get_all_organization_members(org_id)
 
     if user_rooms != None:
         for room in user_rooms:
@@ -292,7 +292,7 @@ def sidebar_emitter(
                 user_id_set = set(room["room_user_ids"]).difference({member_id})
                 partner_id = list(user_id_set)[0]
 
-                profile = get_member(members, partner_id)
+                profile = await get_member(members, partner_id)
 
                 if "user_name" in profile and profile["user_name"] != "":
                     if profile["user_name"]:
@@ -345,7 +345,7 @@ def sidebar_emitter(
 
 
 # gets starred rooms
-def get_starred_rooms(member_id, org_id):
+async def get_starred_rooms(member_id, org_id):
     """goes through database and returns starred rooms"""
     response = get_rooms(member_id, org_id)
     if response:
@@ -363,7 +363,7 @@ def get_starred_rooms(member_id, org_id):
             return []
 
 
-def getQueue():
+async def getQueue():
     """Get queue data from the plugin information
 
     Returns:
@@ -380,7 +380,7 @@ def getQueue():
         return None
 
 
-def update_queue_sync(queue_id: int):
+async def update_queue_sync(queue_id: int):
     """Patch with the last queue id
 
     Args:
