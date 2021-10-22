@@ -28,13 +28,13 @@ async def delete_message(message_id, room_id):
                         room=room_id, data=response
                     )
                 if centrifugo_data and centrifugo_data.get("status_code") == 200:
-                        return {"data": response_output)
+                        return {"data": response_output}
 
                 raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY,
                         detail="Message not sent")    
                     
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail="Message not found")         )
+                        detail="Message not found")         
     except Exception as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                         detail=str(e))
