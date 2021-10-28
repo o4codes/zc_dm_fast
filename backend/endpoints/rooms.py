@@ -83,7 +83,7 @@ async def create_room(org_id,member_id:str, room:Room):
                                                 group_room_name=room_dict["room_name"])
 
         try:
-            centrifugo_data = centrifugo_client.publish(
+            centrifugo_data = await centrifugo_client.publish(
                 room=f"{org_id}_{member_id}_sidebar",
                 data=response_output,
             )  # publish data to centrifugo

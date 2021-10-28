@@ -36,7 +36,7 @@ async def delete_message(request: Request, room_id: str, message_id: str):
                     "room_id": room_id,
                     "message_id": message_id,
                 }
-                centrifugo_data = centrifugo_client.publish(room=room_id, data=response)
+                centrifugo_data = await centrifugo_client.publish(room=room_id, data=response)
                 if centrifugo_data and centrifugo_data.get("status_code") == 200:
                     return {"data": response_output}
 
@@ -81,7 +81,7 @@ async def send_message(org_id:str, room_id:str, message:messageSchema.Message):
                     },
                 }
                 try:
-                    centrifugo_data = centrifugo_client.publish(
+                    centrifugo_data = await centrifugo_client.publish(
                         room=room_id, data=response_output
                     )  # publish data to centrifugo
                     if centrifugo_data and centrifugo_data.get("status_code") == 200:
@@ -203,7 +203,7 @@ async def edit_message(org_id: str, room_id: str, message_id: str, new_message: 
                         "message": new_message.message,
                         "event": Events.MESSAGE_UPDATE,
                     }
-                centrifugo_data = centrifugo_client.publish(room=room_id, data=output_response)
+                centrifugo_data = await centrifugo_client.publish(room=room_id, data=output_response)
                 if centrifugo_data and centrifugo_data.get("status_code") == 200:
                     return output_response
                 return JSONResponse(
