@@ -98,7 +98,7 @@ class DataStorage:
         )
 
         try:
-            response = await requests.get(url=url)
+            response = requests.get(url=url)
         except requests.exceptions.RequestException as e:
             print(e)
             return None

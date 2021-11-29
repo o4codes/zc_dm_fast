@@ -30,7 +30,7 @@ class CentrifugoHandler:
             "Authorization": "apikey " + self.api_key,
         }
 
-    def _send_command(self, command: Dict[int, Any]) -> Dict[int, Any]:
+    async def _send_command(self, command: Dict[int, Any]) -> Dict[int, Any]:
         """Connects to the Centrifugo server and sends command to execute via Centrifugo Server API.
 
             Args:
@@ -53,7 +53,7 @@ class CentrifugoHandler:
 
         return {"status_code": response.status_code, "message": response.json()}
 
-    def publish(
+    async def publish(
         self, room: str, data: Dict[str, str], skip_history=False
     ) -> Dict[int, Any]:
         """Publish data into a room.
@@ -72,9 +72,9 @@ class CentrifugoHandler:
             "params": {"channel": room, "data": data, "skip_history": skip_history},
         }
 
-        return self._send_command(command)
+        return await self._send_command(command)
 
-    def unsubscribe(self, user: str, room: str, client: Optional[str] = None) -> None:
+    async def unsubscribe(self, user: str, room: str, client: Optional[str] = None) -> None:
         """Unsubscribe a user from a room
 
         Args:
@@ -91,7 +91,7 @@ class CentrifugoHandler:
             "params": {"channel": room, "user": user, "client": client},
         }
 
-        return self._send_command(command)
+        return await self._send_command(command)
 
 
 # An instance of CentrifugoHandler
